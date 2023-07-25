@@ -20,56 +20,53 @@ import com.divyanshu.draw.R
 
 
 class DrawView(context: Context, attrs: AttributeSet) : View(context, attrs) {
-    var mPaths = LinkedHashMap<MyPath, PaintOptions>()
+    var paths = LinkedHashMap<MyPath, PaintOptions>()
+    private var lastPaths = LinkedHashMap<MyPath, PaintOptions>()
+    private var undonePaths = LinkedHashMap<MyPath, PaintOptions>()
 
-    private var mLastPaths = LinkedHashMap<MyPath, PaintOptions>()
-    private var mUndonePaths = LinkedHashMap<MyPath, PaintOptions>()
+    private var paint = Paint()
+    private var myPath = MyPath()
+    private var paintOptions = PaintOptions()
 
-    private var mPaint = Paint()
-    private var mPath = MyPath()
-    private var mPaintOptions = PaintOptions()
+    private var currentX = 0f
+    private var currentY = 0f
+    private var startX = 0f
+    private var startY = 0f
+    private var isSaving = false
+    private var isStrokeWidthBarEnabled = false
+    private var transform = Matrix()
 
-    private var mCurX = 0f
-    private var mCurY = 0f
-    private var mStartX = 0f
-    private var mStartY = 0f
-    private var mIsSaving = false
-    private var mIsStrokeWidthBarEnabled = false
-    private var mTransform = Matrix()
+    private var isScrolling = false
+    private var scale = 1f
+    private var scrollOriginX = 0f
+    private var scrollOriginY = 0f
+    private var scrollX = 0f
+    private var scrollY = 0f
+    private var scaleGestureDetector: ScaleGestureDetector
 
-    private var mIsScrolling = false
-    private var mScale = 1f
-    private var mScrollOriginX = 0f
-    private var mScrollOriginY = 0f
-    private var mScrollX = 0f
-    private var mScrollY = 0f
-    private var mScaleGestureDetector: ScaleGestureDetector
-
-    private var mBackground: Bitmap? = BitmapFactory.decodeResource(resources, R.drawable.car)
-    private var mBackgroundRect = RectF()
+    private var backgroundBitmap: Bitmap? = BitmapFactory.decodeResource(resources, R.drawable.car)
+    private var backgroundRect = RectF()
 
     var tempRect = Rect()
 
-    private var originalBitmap = BitmapFactory.decodeResource(resources, R.drawable.car)
-
     init {
-        mPaint.apply {
-            color = mPaintOptions.color
+        paint.apply {
+            color = paintOptions.color
             style = Paint.Style.STROKE
             strokeJoin = Paint.Join.ROUND
             strokeCap = Paint.Cap.ROUND
-            strokeWidth = mPaintOptions.strokeWidth
+            strokeWidth = paintOptions.strokeWidth
             isAntiAlias = true
         }
 
-        mScaleGestureDetector = ScaleGestureDetector(context,
+        scaleGestureDetector = ScaleGestureDetector(context,
             object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
                 override fun onScale(detector: ScaleGestureDetector): Boolean {
-                    val oldScale = mScale
-                    mScale *= detector.scaleFactor
-                    mScale = Math.min(Math.max(mScale, 0.5f), 3.0f)
-                    mScrollX += detector.focusX * (oldScale - mScale) / mScale
-                    mScrollY += detector.focusY * (oldScale - mScale) / mScale
+                    val oldScale = scale
+                    scale *= detector.scaleFactor
+                    scale = Math.min(Math.max(scale, 0.5f), 3.0f)
+                    scrollX += detector.focusX * (oldScale - scale) / scale
+                    scrollY += detector.focusY * (oldScale - scale) / scale
                     invalidate()
                     return true
                 }
@@ -77,58 +74,58 @@ class DrawView(context: Context, attrs: AttributeSet) : View(context, attrs) {
     }
 
     fun reset() {
-        mUndonePaths.clear()
-        mPaths.clear()
-        mLastPaths.clear()
+        undonePaths.clear()
+        paths.clear()
+        lastPaths.clear()
         clearCanvas()
     }
 
     fun undo() {
-        if (mPaths.isEmpty() && mLastPaths.isNotEmpty()) {
-            mPaths = mLastPaths.clone() as LinkedHashMap<MyPath, PaintOptions>
-            mLastPaths.clear()
+        if (paths.isEmpty() && lastPaths.isNotEmpty()) {
+            paths = lastPaths.clone() as LinkedHashMap<MyPath, PaintOptions>
+            lastPaths.clear()
             invalidate()
             return
         }
-        if (mPaths.isEmpty()) return
+        if (paths.isEmpty()) return
 
-        val lastPath = mPaths.values.lastOrNull()
-        val lastKey = mPaths.keys.lastOrNull()
+        val lastPath = paths.values.lastOrNull()
+        val lastKey = paths.keys.lastOrNull()
 
-        mPaths.remove(lastKey)
+        paths.remove(lastKey)
         if (lastPath != null && lastKey != null) {
-            mUndonePaths[lastKey] = lastPath
+            undonePaths[lastKey] = lastPath
         }
         invalidate()
     }
 
     fun redo() {
-        if (mUndonePaths.keys.isEmpty()) return
-        val lastKey = mUndonePaths.keys.last()
-        addPath(lastKey, mUndonePaths.values.last())
-        mUndonePaths.remove(lastKey)
+        if (undonePaths.keys.isEmpty()) return
+        val lastKey = undonePaths.keys.last()
+        addPath(lastKey, undonePaths.values.last())
+        undonePaths.remove(lastKey)
         invalidate()
     }
 
     fun setColor(newColor: Int) {
-        Log.d("alpha", mPaintOptions.alpha.toString())
+        Log.d("alpha", paintOptions.alpha.toString())
         @ColorInt
-        val alphaColor = ColorUtils.setAlphaComponent(newColor, mPaintOptions.alpha)
-        mPaintOptions.color = alphaColor
-        if (mIsStrokeWidthBarEnabled) {
+        val alphaColor = ColorUtils.setAlphaComponent(newColor, paintOptions.alpha)
+        paintOptions.color = alphaColor
+        if (isStrokeWidthBarEnabled) {
             invalidate()
         }
     }
 
 
     fun setAlpha(newAlpha: Int) {
-        mPaintOptions.alpha = newAlpha
-        setColor(mPaintOptions.color)
+        paintOptions.alpha = newAlpha
+        setColor(paintOptions.color)
     }
 
     fun setStrokeWidth(newStrokeWidth: Float) {
-        mPaintOptions.strokeWidth = newStrokeWidth
-        if (mIsStrokeWidthBarEnabled) {
+        paintOptions.strokeWidth = newStrokeWidth
+        if (isStrokeWidthBarEnabled) {
             invalidate()
         }
     }
@@ -138,97 +135,94 @@ class DrawView(context: Context, attrs: AttributeSet) : View(context, attrs) {
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         canvas.drawColor(Color.WHITE)
-        mIsSaving = true
+        isSaving = true
         draw(canvas)
-        mIsSaving = false
+        isSaving = false
         return bitmap
     }
 
 
     private fun addPath(path: MyPath, options: PaintOptions) {
-        mPaths[path] = options
+        paths[path] = options
     }
 
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        //canvas.drawBitmap(originalBitmap, null, RectF(0F, 0F, 1000F, 1000F), null)
-
         // Store current clip bounds in tempRect.
         canvas.getClipBounds(tempRect)
 
-        mTransform.setTranslate(mScrollX + tempRect.centerX(), mScrollY + tempRect.centerY())
-        mTransform.postScale(mScale, mScale)
+        transform.setTranslate(scrollX + tempRect.centerX(), scrollY + tempRect.centerY())
+        transform.postScale(scale, scale)
 
-        val bg = mBackground
-        if (bg != null) {
-            mBackgroundRect.left = -bg.width.toFloat() / 2
-            mBackgroundRect.right = bg.width.toFloat() / 2
-            mBackgroundRect.top = -bg.height.toFloat() / 2
-            mBackgroundRect.bottom = bg.height.toFloat() / 2
-            if (bg.height == 1 && bg.width == 1) {
-                mBackgroundRect.set(tempRect)
+        backgroundBitmap?.let {
+            backgroundRect.left = -it.width.toFloat() / 2
+            backgroundRect.right = it.width.toFloat() / 2
+            backgroundRect.top = -it.height.toFloat() / 2
+            backgroundRect.bottom = it.height.toFloat() / 2
+            if (it.height == 1 && it.width == 1) {
+                backgroundRect.set(tempRect)
             } else {
-                mTransform.mapRect(mBackgroundRect)
+                transform.mapRect(backgroundRect)
             }
 
-            mBackground?.let {
-                canvas.drawBitmap(it, null, mBackgroundRect, null)
+            backgroundBitmap?.let {
+                canvas.drawBitmap(it, null, backgroundRect, null)
             }
         }
 
-        canvas.setMatrix(mTransform)
-        mTransform.invert(mTransform)
+        canvas.setMatrix(transform)
+        transform.invert(transform)
 
-        for ((key, value) in mPaths) {
+        for ((key, value) in paths) {
             changePaint(value)
-            canvas.drawPath(key, mPaint)
+            canvas.drawPath(key, paint)
         }
 
-        changePaint(mPaintOptions)
-        canvas.drawPath(mPath, mPaint)
+        changePaint(paintOptions)
+        canvas.drawPath(myPath, paint)
     }
 
     private fun changePaint(paintOptions: PaintOptions) {
-        mPaint.color = paintOptions.color
-        mPaint.strokeWidth = paintOptions.strokeWidth
+        paint.color = paintOptions.color
+        paint.strokeWidth = paintOptions.strokeWidth
     }
 
     fun clearCanvas() {
-        mBackground = null
-        mLastPaths = mPaths.clone() as LinkedHashMap<MyPath, PaintOptions>
-        mPath.reset()
-        mPaths.clear()
+        backgroundBitmap = null
+        lastPaths = paths.clone() as LinkedHashMap<MyPath, PaintOptions>
+        myPath.reset()
+        paths.clear()
         invalidate()
     }
 
     private fun actionDown(x: Float, y: Float) {
-        mPath.reset()
-        mPath.moveTo(x, y)
-        mCurX = x
-        mCurY = y
+        myPath.reset()
+        myPath.moveTo(x, y)
+        currentX = x
+        currentY = y
     }
 
     private fun actionMove(x: Float, y: Float) {
-        mPath.quadTo(mCurX, mCurY, (x + mCurX) / 2, (y + mCurY) / 2)
-        mCurX = x
-        mCurY = y
+        myPath.quadTo(currentX, currentY, (x + currentX) / 2, (y + currentY) / 2)
+        currentX = x
+        currentY = y
     }
 
     private fun actionUp() {
-        mPath.lineTo(mCurX, mCurY)
+        myPath.lineTo(currentX, currentY)
 
         // draw a dot on click
-        if (mStartX == mCurX && mStartY == mCurY) {
-            mPath.lineTo(mCurX, mCurY + 2)
-            mPath.lineTo(mCurX + 1, mCurY + 2)
-            mPath.lineTo(mCurX + 1, mCurY)
+        if (startX == currentX && startY == currentY) {
+            myPath.lineTo(currentX, currentY + 2)
+            myPath.lineTo(currentX + 1, currentY + 2)
+            myPath.lineTo(currentX + 1, currentY)
         }
 
-        mPaths[mPath] = mPaintOptions
-        mPath = MyPath()
-        mPaintOptions = PaintOptions(mPaintOptions.color, mPaintOptions.strokeWidth, mPaintOptions.alpha)
+        paths[myPath] = paintOptions
+        myPath = MyPath()
+        paintOptions = PaintOptions(paintOptions.color, paintOptions.strokeWidth, paintOptions.alpha)
     }
 
 
@@ -259,45 +253,45 @@ class DrawView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
         val shouldScroll = event.pointerCount > 1
         val center = getPointerCenter(event)
-        if (shouldScroll != mIsScrolling) {
-            mUndonePaths.clear()
-            mPath.reset()
+        if (shouldScroll != isScrolling) {
+            undonePaths.clear()
+            myPath.reset()
             if (shouldScroll) {
-                mIsScrolling = true
-                mScrollOriginX = center.x
-                mScrollOriginY = center.y
+                isScrolling = true
+                scrollOriginX = center.x
+                scrollOriginY = center.y
             } else if (event.action == MotionEvent.ACTION_UP) {
-                mIsScrolling = false
+                isScrolling = false
             }
             return true
         }
 
         if (shouldScroll) {
-            mScrollX += (center.x - mScrollOriginX) / mScale
-            mScrollY += (center.y - mScrollOriginY) / mScale
-            mScrollOriginX = center.x
-            mScrollOriginY = center.y
+            scrollX += (center.x - scrollOriginX) / scale
+            scrollY += (center.y - scrollOriginY) / scale
+            scrollOriginX = center.x
+            scrollOriginY = center.y
             invalidate()
         }
-        return mIsScrolling
+        return isScrolling
     }
 
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        mScaleGestureDetector.onTouchEvent(event)
+        scaleGestureDetector.onTouchEvent(event)
         if (handleScroll(event)) return true
 
         val points: FloatArray = floatArrayOf(event.x, event.y)
-        mTransform.mapPoints(points)
+        transform.mapPoints(points)
         val x = points[0]
         val y = points[1]
 
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                mStartX = x
-                mStartY = y
+                startX = x
+                startY = y
                 actionDown(x, y)
-                mUndonePaths.clear()
+                undonePaths.clear()
             }
 
             MotionEvent.ACTION_MOVE -> actionMove(x, y)
