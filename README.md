@@ -1,8 +1,6 @@
 # Android Finger Painting
 
-This is a simple app that allows painting on the screen using a finger. 
-Features-
-1. Two finger pan and zoom
-2. Change colors using colorpicker
-3. Set variable brush size
-4. Save drawing as a jpg image in gallery
+Many things are likely busted here. All I really care about is:
+1. Draw with a brush of any color
+2. Set background image
+3. Two finger pan and zoom that properly adjusts the drawing and the background image
