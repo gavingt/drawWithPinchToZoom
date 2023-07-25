@@ -2,6 +2,7 @@ package com.divyanshu.draw.widget
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Matrix
@@ -15,6 +16,7 @@ import android.view.ScaleGestureDetector
 import android.view.View
 import androidx.annotation.ColorInt
 import androidx.core.graphics.ColorUtils
+import com.divyanshu.draw.R
 
 
 class DrawView(context: Context, attrs: AttributeSet) : View(context, attrs) {
@@ -43,10 +45,12 @@ class DrawView(context: Context, attrs: AttributeSet) : View(context, attrs) {
     private var mScrollY = 0f
     private var mScaleGestureDetector: ScaleGestureDetector
 
-    private var mBackground: Bitmap? = null
+    private var mBackground: Bitmap? = BitmapFactory.decodeResource(resources, R.drawable.car)
     private var mBackgroundRect = RectF()
 
     var tempRect = Rect()
+
+    private var originalBitmap = BitmapFactory.decodeResource(resources, R.drawable.car)
 
     init {
         mPaint.apply {
@@ -148,6 +152,8 @@ class DrawView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+
+        //canvas.drawBitmap(originalBitmap, null, RectF(0F, 0F, 1000F, 1000F), null)
 
         // Store current clip bounds in tempRect.
         canvas.getClipBounds(tempRect)

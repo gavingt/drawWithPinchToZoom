@@ -137,17 +137,17 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, ColorPickerDialo
     }
 
     override fun onDialogDismissed(dialogId: Int) {}
-    fun saveDrawing() {
+
+
+    private fun saveDrawing() {
         fixMediaDir()
         if (checkPermissionREAD_EXTERNAL_STORAGE(applicationContext)) {
             val bmp = drawView!!.getBitmap()
             val imgSaved = MediaStore.Images.Media.insertImage(contentResolver, bmp, UUID.randomUUID().toString() + ".png", "drawing")
             if (imgSaved != null) {
-                val savedtoast = Toast.makeText(applicationContext.applicationContext, "Drawing saved to Gallery", Toast.LENGTH_SHORT)
-                savedtoast.show()
+                Toast.makeText(applicationContext.applicationContext, "Drawing saved to Gallery", Toast.LENGTH_SHORT).show()
             } else {
-                val unsaved = Toast.makeText(applicationContext.applicationContext, "Image could not saved", Toast.LENGTH_SHORT)
-                unsaved.show()
+                Toast.makeText(applicationContext.applicationContext, "Image could not saved", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -199,7 +199,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, ColorPickerDialo
         when (requestCode) {
             MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE -> if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // do your stuff
-            } else {
             }
 
             else -> {}
@@ -217,9 +216,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, ColorPickerDialo
     }
 
     companion object {
-        @JvmField
-        var redoBtn: ImageButton? = null
-        var undoBtn: ImageButton? = null
         const val MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 123
         private const val DIALOG_ID = 0
     }
