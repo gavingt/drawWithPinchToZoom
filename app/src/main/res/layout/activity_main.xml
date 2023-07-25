@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/appBackground"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/draw_tools"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#353639"
+        android:elevation="3dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageButton
+            android:id="@+id/image_draw_eraser"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:background="@null"
+            android:foreground="?selectableItemBackground"
+            android:onClick="onClick"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:src="@drawable/ic_clean"
+            android:tint="@color/icon_color"
+            app:layout_constraintEnd_toStartOf="@+id/image_draw_brush"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/image_draw_brush"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:background="@null"
+            android:foreground="?selectableItemBackground"
+            android:onClick="onClick"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:src="@drawable/ic_brush_black_24dp"
+            android:tint="@color/icon_color"
+            app:layout_constraintEnd_toStartOf="@+id/image_draw_width"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+        <ImageButton
+            android:id="@+id/image_draw_width"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:layout_marginEnd="8dp"
+            android:background="@null"
+            android:foreground="?selectableItemBackground"
+            android:onClick="onClick"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:src="@drawable/ic_adjust_black_24dp"
+            android:tint="@color/icon_color"
+            app:layout_constraintEnd_toStartOf="@+id/image_draw_color"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/image_draw_color"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:background="@null"
+            android:foreground="?selectableItemBackground"
+            android:onClick="onClick"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:src="@drawable/ic_color_lens_black_24dp"
+            android:tint="@color/icon_color"
+            app:layout_constraintEnd_toStartOf="@+id/image_draw_undo"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/image_draw_undo"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:background="@null"
+            android:foreground="?selectableItemBackground"
+            android:onClick="onClick"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:src="@drawable/ic_undo_black_24dp"
+            android:tint="@color/icon_color"
+            app:layout_constraintEnd_toStartOf="@+id/image_draw_redo"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/image_draw_redo"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:background="@null"
+            android:foreground="?selectableItemBackground"
+            android:onClick="onClick"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:src="@drawable/ic_redo_black_24dp"
+            android:tint="@color/icon_color"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <SeekBar
+            android:id="@+id/seekBar_width"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:progress="8"
+            app:layout_constraintEnd_toStartOf="@+id/circle_view_preview"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/image_draw_eraser" />
+
+        <com.divyanshu.draw.widget.CircleView
+            android:id="@+id/circle_view_preview"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/image_draw_eraser" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <com.divyanshu.draw.widget.DrawView
+        android:id="@+id/drawing"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@color/viewBackground"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout2"
+        app:layout_constraintVertical_bias="1.0"
+        tools:layout_editor_absoluteX="-16dp" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="#353639"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/newBtn"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:background="@null"
+            android:foreground="?selectableItemBackground"
+            android:onClick="onClick"
+            android:paddingLeft="16dp"
+            android:paddingTop="10dp"
+            android:paddingRight="8dp"
+            android:paddingBottom="10dp"
+            android:src="@drawable/new_add"
+            android:tint="@color/icon_color"
+            app:layout_constraintEnd_toStartOf="@+id/saveBtn"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/saveBtn"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:background="@null"
+            android:foreground="?selectableItemBackground"
+            android:onClick="onClick"
+            android:paddingTop="10dp"
+            android:paddingRight="16dp"
+            android:paddingBottom="10dp"
+            android:src="@drawable/ic_save_black_24dp"
+            android:tint="@color/icon_color"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
