@@ -107,17 +107,6 @@
             app:layout_constraintTop_toTopOf="parent"
             app:tint="@color/icon_color" />
 
-        <SeekBar
-            android:id="@+id/seekBar_width"
-            android:layout_width="0dp"
-            android:layout_height="56dp"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:progress="8"
-            app:layout_constraintEnd_toStartOf="@+id/circle_view_preview"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/image_draw_eraser" />
-
         <com.divyanshu.draw.widget.CircleView
             android:id="@+id/circle_view_preview"
             android:layout_width="56dp"
@@ -128,7 +117,7 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.divyanshu.draw.widget.DrawView
-        android:id="@+id/drawing"
+        android:id="@+id/drawView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:background="@color/viewBackground"

@@ -27,24 +27,9 @@ import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import java.io.File
 import java.util.UUID
 
-class MainActivity : AppCompatActivity(), View.OnClickListener, ColorPickerDialogListener {
+class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     private lateinit var binding: ActivityMainBinding
-
-    private var drawView: DrawView? = null
-    private var colorSelect: ImageButton? = null
-    private var drawBtn: ImageButton? = null
-    private var eraseBtn: ImageButton? = null
-    private var newBtn: ImageButton? = null
-    private var saveBtn: ImageButton? = null
-    private var smallBrush = 0f
-    private var mediumBrush = 0f
-    private var largeBrush = 0f
-    var currentColor = 0
-    private var toolbar: View? = null
-    private var preview: CircleView? = null
-    private var seekBarWidth: SeekBar? = null
-    var eraser = false
     var toolbarOpen = false
 
 
@@ -54,47 +39,26 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, ColorPickerDialo
         setContentView(binding.root)
 
         binding.imageDrawColor.setOnClickListener(this)
-        currentColor = Color.BLACK
-        smallBrush = resources.getInteger(R.integer.smallSize).toFloat()
-        mediumBrush = resources.getInteger(R.integer.mediumSize).toFloat()
-        largeBrush = resources.getInteger(R.integer.largeSize).toFloat()
         binding.imageDrawWidth.setOnClickListener(this)
-        binding.drawing.setStrokeWidth(15f)
         binding.imageDrawEraser.setOnClickListener(this)
-        eraser = false
         binding.newBtn.setOnClickListener(this)
         binding.saveBtn.setOnClickListener(this)
-        binding.imageDrawRedo.setOnClickListener { binding.drawing.redo() }
-        binding.imageDrawUndo.setOnClickListener { binding.drawing.undo() }
-        binding.seekBarWidth.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                binding.drawing.setStrokeWidth(progress.toFloat())
-                binding.circleViewPreview.setCircleRadius(progress.toFloat())
-            }
+        binding.imageDrawRedo.setOnClickListener { binding.drawView.redo() }
+        binding.imageDrawUndo.setOnClickListener { binding.drawView.undo() }
 
-            override fun onStartTrackingTouch(seekBar: SeekBar) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar) {}
-        })
         if (ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 112)
         }
     }
 
     override fun onClick(view: View) {
-        if (view.id == R.id.image_draw_width) {
-            toggleToolbar()
-        } else if (view.id == R.id.image_draw_brush) {
-            drawView!!.setColor(currentColor)
-            preview!!.setColor(currentColor)
-        } else if (view.id == R.id.image_draw_eraser) {
-            drawView!!.setColor(Color.WHITE)
-            preview!!.setColor(Color.WHITE)
+        if (view.id == R.id.image_draw_eraser) {
+            binding.circleViewPreview.setColor(Color.WHITE)
         } else if (view.id == R.id.image_draw_color) {
             ColorPickerDialog.newBuilder()
                 .setDialogType(ColorPickerDialog.TYPE_CUSTOM)
                 .setAllowPresets(false)
                 .setDialogId(DIALOG_ID)
-                .setColor(currentColor)
                 .setShowAlphaSlider(true)
                 .show(this)
         } else if (view.id == R.id.newBtn) {
@@ -102,7 +66,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, ColorPickerDialo
             newDialog.setTitle("New Drawing")
             newDialog.setMessage("Start a new drawing? (This will erase your current drawing.)")
             newDialog.setPositiveButton("Yes") { dialog, which ->
-                drawView!!.reset()
+                binding.drawView.reset()
                 dialog.dismiss()
             }
             newDialog.setNegativeButton("No") { dialog, which -> dialog.cancel() }
@@ -117,32 +81,11 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, ColorPickerDialo
         }
     }
 
-    private fun toggleToolbar() {
-        toolbar!!.animate().translationY((if (toolbarOpen) 56 else 0) * resources.displayMetrics.density)
-        toolbarOpen = !toolbarOpen
-    }
-
-    override fun onColorSelected(dialogId: Int, color: Int) {
-        Log.d("Color", "onColorSelected() called with: dialogId = [$dialogId], color = [$color]")
-        when (dialogId) {
-            DIALOG_ID -> {
-                // We got result from the dialog that is shown when clicking on the icon in the action bar.
-                currentColor = color
-                drawView!!.setColor(color)
-                val alpha = color shr 24 and 0x000000FF
-                Log.d("Alpha", "$color $alpha")
-                drawView!!.setAlpha(alpha)
-            }
-        }
-    }
-
-    override fun onDialogDismissed(dialogId: Int) {}
-
 
     private fun saveDrawing() {
         fixMediaDir()
         if (checkPermissionREAD_EXTERNAL_STORAGE(applicationContext)) {
-            val bmp = drawView!!.getBitmap()
+            val bmp = binding.drawView.getBitmap()
             val imgSaved = MediaStore.Images.Media.insertImage(contentResolver, bmp, UUID.randomUUID().toString() + ".png", "drawing")
             if (imgSaved != null) {
                 Toast.makeText(applicationContext.applicationContext, "Drawing saved to Gallery", Toast.LENGTH_SHORT).show()
