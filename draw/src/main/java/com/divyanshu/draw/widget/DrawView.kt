@@ -21,23 +21,24 @@ data class PaintOptions(var color: Int = Color.parseColor("#660000FF"), var stro
 
 
 class DrawView(context: Context, attrs: AttributeSet) : View(context, attrs) {
+
+    // TODO: Maybe we just need these properties.
     private var paths = LinkedHashMap<MyPath, PaintOptions>()
     private var lastPaths = LinkedHashMap<MyPath, PaintOptions>()
     private var undonePaths = LinkedHashMap<MyPath, PaintOptions>()
-
     private var paint = Paint()
     private var myPath = MyPath()
     private var paintOptions = PaintOptions()
-
     private var currentX = 0f
     private var currentY = 0f
     private var startX = 0f
     private var startY = 0f
-    private var isSaving = false
-    private var transform = Matrix()
 
+
+    // TODO: We probably don't need these.
+    private var matrix = Matrix()
     private var isScrolling = false
-    private var scale = 1f
+    private var currentScaleFactor = 1f
     private var scrollOriginX = 0f
     private var scrollOriginY = 0f
     private var scrollX = 0f
@@ -61,24 +62,16 @@ class DrawView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
         scaleGestureDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
             override fun onScale(detector: ScaleGestureDetector): Boolean {
-                val oldScale = scale
-                scale *= detector.scaleFactor
+                val oldScale = currentScaleFactor
+                currentScaleFactor *= detector.scaleFactor
                 // Set min and max zoom levels.
-                scale = scale.coerceAtLeast(0.2f).coerceAtMost(3.0f)
-                scrollX += detector.focusX * (oldScale - scale) / scale
-                scrollY += detector.focusY * (oldScale - scale) / scale
+                currentScaleFactor = currentScaleFactor.coerceAtLeast(0.2f).coerceAtMost(3.0f)
+                scrollX += detector.focusX * (oldScale - currentScaleFactor) / currentScaleFactor
+                scrollY += detector.focusY * (oldScale - currentScaleFactor) / currentScaleFactor
                 invalidate()
                 return true
             }
         })
-    }
-
-
-    fun reset() {
-        undonePaths.clear()
-        paths.clear()
-        lastPaths.clear()
-        clearCanvas()
     }
 
 
@@ -111,13 +104,24 @@ class DrawView(context: Context, attrs: AttributeSet) : View(context, attrs) {
     }
 
 
+    fun reset() {
+        undonePaths.clear()
+        paths.clear()
+        lastPaths.clear()
+
+        backgroundBitmap = null
+        lastPaths = paths.clone() as LinkedHashMap<MyPath, PaintOptions>
+        myPath.reset()
+        paths.clear()
+        invalidate()
+    }
+
+
     fun getBitmap(): Bitmap {
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         canvas.drawColor(Color.WHITE)
-        isSaving = true
         draw(canvas)
-        isSaving = false
         return bitmap
     }
 
@@ -128,40 +132,31 @@ class DrawView(context: Context, attrs: AttributeSet) : View(context, attrs) {
         // Store current clip bounds in visibleRect.
         canvas.getClipBounds(visibleRect)
 
-        transform.setTranslate(scrollX + visibleRect.centerX(), scrollY + visibleRect.centerY())
-        transform.postScale(scale, scale)
+        matrix.setTranslate(scrollX + visibleRect.centerX(), scrollY + visibleRect.centerY())
+        matrix.postScale(currentScaleFactor, currentScaleFactor)
 
         backgroundBitmap?.let {
-            backgroundRect.left = 0F
+            backgroundRect.left = -it.width.toFloat() / 2
             backgroundRect.right = it.width.toFloat() / 2
-            backgroundRect.top = 0F
+            backgroundRect.top = -it.height.toFloat() / 2
             backgroundRect.bottom = it.height.toFloat() / 2
             if (it.height == 1 && it.width == 1) {
                 backgroundRect.set(visibleRect)
             } else {
-                transform.mapRect(backgroundRect)
+                matrix.mapRect(backgroundRect)
             }
 
             canvas.drawBitmap(it, null, backgroundRect, null)
         }
 
-        canvas.setMatrix(transform)
-        transform.invert(transform)
+        canvas.setMatrix(matrix)
+        matrix.invert(matrix)
 
         for ((key, _) in paths) {
             canvas.drawPath(key, paint)
         }
 
         canvas.drawPath(myPath, paint)
-    }
-
-
-    private fun clearCanvas() {
-        backgroundBitmap = null
-        lastPaths = paths.clone() as LinkedHashMap<MyPath, PaintOptions>
-        myPath.reset()
-        paths.clear()
-        invalidate()
     }
 
 
@@ -184,6 +179,8 @@ class DrawView(context: Context, attrs: AttributeSet) : View(context, attrs) {
             return result
         }
 
+
+        // TODO: We probably need to add this to solve problem with extra strokes when zooming.
         fun handleScroll(event: MotionEvent): Boolean {
             if (event.action != MotionEvent.ACTION_UP && event.action != MotionEvent.ACTION_DOWN && event.action != MotionEvent.ACTION_POINTER_DOWN
                 && event.action != MotionEvent.ACTION_POINTER_UP && event.action != MotionEvent.ACTION_MOVE
@@ -207,8 +204,8 @@ class DrawView(context: Context, attrs: AttributeSet) : View(context, attrs) {
             }
 
             if (shouldScroll) {
-                scrollX += (center.x - scrollOriginX) / scale
-                scrollY += (center.y - scrollOriginY) / scale
+                scrollX += (center.x - scrollOriginX) / currentScaleFactor
+                scrollY += (center.y - scrollOriginY) / currentScaleFactor
                 scrollOriginX = center.x
                 scrollOriginY = center.y
                 invalidate()
@@ -221,7 +218,7 @@ class DrawView(context: Context, attrs: AttributeSet) : View(context, attrs) {
         if (handleScroll(event)) return true
 
         val points: FloatArray = floatArrayOf(event.x, event.y)
-        transform.mapPoints(points)
+        matrix.mapPoints(points)
         val x = points[0]
         val y = points[1]
 
