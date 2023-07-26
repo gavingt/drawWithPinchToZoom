@@ -156,7 +156,7 @@ class DrawView(context: Context, attrs: AttributeSet) : View(context, attrs) {
     }
 
 
-    fun clearCanvas() {
+    private fun clearCanvas() {
         backgroundBitmap = null
         lastPaths = paths.clone() as LinkedHashMap<MyPath, PaintOptions>
         myPath.reset()

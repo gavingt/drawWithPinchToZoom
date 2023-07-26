@@ -107,13 +107,6 @@
             app:layout_constraintTop_toTopOf="parent"
             app:tint="@color/icon_color" />
 
-        <com.divyanshu.draw.widget.CircleView
-            android:id="@+id/circle_view_preview"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/image_draw_eraser" />
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.divyanshu.draw.widget.DrawView

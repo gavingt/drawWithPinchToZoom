@@ -10,20 +10,13 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
-import android.util.Log
 import android.view.View
-import android.widget.ImageButton
-import android.widget.SeekBar
-import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.divyanshu.draw.widget.CircleView
-import com.divyanshu.draw.widget.DrawView
 import com.example.painter.databinding.ActivityMainBinding
 import com.jaredrummler.android.colorpicker.ColorPickerDialog
-import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import java.io.File
 import java.util.UUID
 
@@ -52,9 +45,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     override fun onClick(view: View) {
-        if (view.id == R.id.image_draw_eraser) {
-            binding.circleViewPreview.setColor(Color.WHITE)
-        } else if (view.id == R.id.image_draw_color) {
+        if (view.id == R.id.image_draw_color) {
             ColorPickerDialog.newBuilder()
                 .setDialogType(ColorPickerDialog.TYPE_CUSTOM)
                 .setAllowPresets(false)
