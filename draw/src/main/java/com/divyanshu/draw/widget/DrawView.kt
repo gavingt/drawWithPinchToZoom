@@ -63,7 +63,8 @@ class DrawView(context: Context, attrs: AttributeSet) : View(context, attrs) {
             override fun onScale(detector: ScaleGestureDetector): Boolean {
                 val oldScale = scale
                 scale *= detector.scaleFactor
-                scale = scale.coerceAtLeast(0.5f).coerceAtMost(3.0f)
+                // Set min and max zoom levels.
+                scale = scale.coerceAtLeast(0.2f).coerceAtMost(3.0f)
                 scrollX += detector.focusX * (oldScale - scale) / scale
                 scrollY += detector.focusY * (oldScale - scale) / scale
                 invalidate()
@@ -127,13 +128,13 @@ class DrawView(context: Context, attrs: AttributeSet) : View(context, attrs) {
         // Store current clip bounds in visibleRect.
         canvas.getClipBounds(visibleRect)
 
-        transform.setTranslate(scrollX + visibleRect.centerX(), scrollY + visibleRect.centerY())
+        transform.setTranslate(scrollX/* + visibleRect.centerX()*/, scrollY + visibleRect.centerY())
         transform.postScale(scale, scale)
 
         backgroundBitmap?.let {
-            backgroundRect.left = -it.width.toFloat() / 2
+            backgroundRect.left = 0F
             backgroundRect.right = it.width.toFloat() / 2
-            backgroundRect.top = -it.height.toFloat() / 2
+            backgroundRect.top = 0F
             backgroundRect.bottom = it.height.toFloat() / 2
             if (it.height == 1 && it.width == 1) {
                 backgroundRect.set(visibleRect)
