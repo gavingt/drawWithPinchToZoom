@@ -128,7 +128,7 @@ class DrawView(context: Context, attrs: AttributeSet) : View(context, attrs) {
         // Store current clip bounds in visibleRect.
         canvas.getClipBounds(visibleRect)
 
-        transform.setTranslate(scrollX/* + visibleRect.centerX()*/, scrollY + visibleRect.centerY())
+        transform.setTranslate(scrollX + visibleRect.centerX(), scrollY + visibleRect.centerY())
         transform.postScale(scale, scale)
 
         backgroundBitmap?.let {
